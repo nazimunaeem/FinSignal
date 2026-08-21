@@ -5,13 +5,13 @@ import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.finsignal.data.local.PreferenceManager
-import com.finsignal.data.local.dao.BillDao
 import com.finsignal.data.local.dao.CreditCardDao
 import com.finsignal.data.local.dao.SmsRecordDao
 import com.finsignal.data.local.entity.Bill
 import com.finsignal.data.local.entity.CreditCard
 import com.finsignal.data.local.entity.SmsRecord
 import com.finsignal.data.log.ActivityLogger
+import com.finsignal.data.repository.BillRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.flow.first
@@ -23,7 +23,7 @@ class SmsScanWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val smsReader: SmsReader,
     private val cardDao: CreditCardDao,
-    private val billDao: BillDao,
+    private val billRepository: BillRepository,
     private val smsRecordDao: SmsRecordDao,
     private val activityLogger: ActivityLogger,
     private val preferenceManager: PreferenceManager
@@ -74,7 +74,7 @@ class SmsScanWorker @AssistedInject constructor(
                     // bill per card+currency active — older unpaid bills are superseded
                     // (their dues are included in the newer bill).
                     removeDuplicateBills()
-                    billDao.markAllButLatestSuperseded()
+                    billRepository.markAllButLatestSuperseded()
 
                     activityLogger.info(TAG, "SMS scan completed. Total: $totalRead, Parsed: $parsedCount, Errors: $errorCount")
 
@@ -88,7 +88,7 @@ class SmsScanWorker @AssistedInject constructor(
                     smsRecordDao.deleteDuplicateSmsRecords()
 
                     val thirtyDaysAgo = now - (30L * 24 * 60 * 60 * 1000)
-                    billDao.clearSmsBodyForOldPaidBills(thirtyDaysAgo)
+                    billRepository.clearSmsBodyForOldPaidBills(thirtyDaysAgo)
 
                     preferenceManager.setFirstScanComplete(true)
 
@@ -140,7 +140,7 @@ class SmsScanWorker @AssistedInject constructor(
             // part of the identity: an EBL card can have a BDT and a USD bill for the
             // same statement month.
             val normalizedPeriod = BankSmsParser.normalizeBillPeriod(parsed.billPeriod)
-            val isDuplicate = billDao.getBillsForCardOnce(card.id).any {
+            val isDuplicate = billRepository.getBillsForCardOnce(card.id).any {
                 BankSmsParser.normalizeBillPeriod(it.billPeriod) == normalizedPeriod &&
                     it.currency.equals(parsed.currency, ignoreCase = true)
             }
@@ -148,10 +148,10 @@ class SmsScanWorker @AssistedInject constructor(
             // Retire older unpaid bills of the SAME currency even when this bill already
             // exists — a repeated SMS must still supersede any older unpaid bill that
             // slipped through. Other-currency bills (e.g. USD) are independent ledgers.
-            billDao.markOlderBillsSuperseded(card.id, parsed.currency, parsed.dueDate)
+            billRepository.markOlderBillsSuperseded(card.id, parsed.currency, parsed.dueDate)
 
             if (!isDuplicate) {
-                billDao.insertBill(
+                billRepository.addBill(
                     Bill(
                         cardId = card.id,
                         billPeriod = normalizedPeriod,
@@ -169,7 +169,7 @@ class SmsScanWorker @AssistedInject constructor(
     }
 
     private suspend fun removeDuplicateBills() {
-        val allBills = billDao.getAllBillsOnce()
+        val allBills = billRepository.getAllBillsOnce()
         val duplicateIds = allBills
             .groupBy { Triple(it.cardId, BankSmsParser.normalizeBillPeriod(it.billPeriod), it.currency.uppercase()) }
             .values
@@ -179,7 +179,7 @@ class SmsScanWorker @AssistedInject constructor(
             }
         if (duplicateIds.isNotEmpty()) {
             activityLogger.info(TAG, "Removing ${duplicateIds.size} duplicate bill row(s)")
-            billDao.deleteBillsByIds(duplicateIds)
+            billRepository.deleteBillsByIds(duplicateIds)
         }
     }
 }
