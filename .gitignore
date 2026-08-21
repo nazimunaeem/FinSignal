@@ -1,5 +1,42 @@
-# Project exclude paths
-/.gradle/
-/app/build/
-/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/
+# Android / Gradle
+.gradle/
+.idea/
+.kotlin/
+local.properties
+*.iml
+*.hprof
+*.log
+
+# Build outputs
 /build/
+/app/build/
+**/build/
+app/release/
+app/debug/
+
+# Local analysis / data exports
+Analysis/
+analysis/
+**/sms*.xml
+**/*sms*.xml
+**/*export*.xml
+**/*backup*.xml
+**/*.env
+**/secrets*.properties
+**/google-services.json
+
+# Keystore / signing
+*.jks
+*.keystore
+*.p12
+
+# Generated / device artifacts
+.DS_Store
+Thumbs.db
+.cxx/
+.externalNativeBuild/
+.captures/
+
+# APK / bundle outputs
+*.apk
+*.aab
