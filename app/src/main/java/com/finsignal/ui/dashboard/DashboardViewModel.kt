@@ -7,6 +7,8 @@ import com.finsignal.data.local.entity.BillWithCard
 import com.finsignal.data.local.entity.DueStatus
 import com.finsignal.data.repository.BillRepository
 import com.finsignal.notification.SmsScheduler
+import com.finsignal.data.network.UpdateInfo
+import com.finsignal.data.network.UpdateManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +35,8 @@ data class DashboardState(
     val upcomingBills: List<BillWithCard> = emptyList(),
     val safeBills: List<BillWithCard> = emptyList(),
     val previousMonthsBills: List<BillWithCard> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
+    val updateInfo: UpdateInfo? = null
 ) {
     fun formatTotals(totals: Map<String, Double>): String {
         if (totals.isEmpty()) return "৳0.00"
@@ -51,7 +54,8 @@ data class DashboardState(
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
     application: Application,
-    private val billRepository: BillRepository
+    private val billRepository: BillRepository,
+    private val updateManager: UpdateManager
 ) : AndroidViewModel(application) {
 
     private val _state = MutableStateFlow(DashboardState())
@@ -60,6 +64,20 @@ class DashboardViewModel @Inject constructor(
 
     init {
         loadDashboard()
+        checkForUpdates()
+    }
+
+    private fun checkForUpdates() {
+        viewModelScope.launch {
+            val currentVersion = getApplication<Application>().packageManager
+                .getPackageInfo(getApplication<Application>().packageName, 0).versionName
+            val update = updateManager.checkForUpdate(currentVersion ?: "1.0.0")
+            _state.value = _state.value.copy(updateInfo = update)
+        }
+    }
+
+    fun dismissUpdate() {
+        _state.value = _state.value.copy(updateInfo = null)
     }
 
     private fun loadDashboard() {
