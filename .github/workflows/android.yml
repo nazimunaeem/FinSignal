@@ -49,7 +49,7 @@ jobs:
         files: release/FinSignal_Debug.apk
         name: FinSignal Debug ${{ github.ref_name }}
         draft: false
-        prerelease: true
+        prerelease: false
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
