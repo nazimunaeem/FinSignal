@@ -27,11 +27,6 @@ class BillRepository @Inject constructor(
 
     suspend fun updatePaidAmount(billId: Long, amount: Double) = billDao.updatePaidAmount(billId, amount)
 
-    suspend fun markAsUnpaid(billId: Long) = billDao.markAsUnpaid(billId)
-
-    suspend fun updateBillDetails(billId: Long, totalDue: Double, minDue: Double, dueDate: String) =
-        billDao.updateBillDetails(billId, totalDue, minDue, dueDate)
-
     suspend fun findExistingBill(cardId: Long, period: String): Bill? =
         billDao.findExistingBill(cardId, period)
 

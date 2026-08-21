@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
@@ -79,6 +80,7 @@ fun SettingsScreen(
     val notificationsEnabled by viewModel.notificationsEnabled.collectAsStateWithLifecycle()
     val alertRules by viewModel.alertRules.collectAsStateWithLifecycle()
     val alertTime by viewModel.alertTime.collectAsStateWithLifecycle()
+    val darkMode by viewModel.darkMode.collectAsStateWithLifecycle()
     val exportState by viewModel.exportState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -141,6 +143,33 @@ fun SettingsScreen(
                         )
                     }
                 )
+
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+
+                var showThemeDialog by remember { mutableStateOf(false) }
+
+                SettingsItem(
+                    icon = Icons.Default.DarkMode,
+                    title = "App Theme",
+                    description = when (darkMode) {
+                        "LIGHT" -> "Light"
+                        "DARK" -> "Dark"
+                        else -> "System Default"
+                    },
+                    onClick = { showThemeDialog = true },
+                    trailing = { Icon(Icons.Default.ChevronRight, contentDescription = null) }
+                )
+
+                if (showThemeDialog) {
+                    ThemeSelectionDialog(
+                        currentMode = darkMode,
+                        onDismiss = { showThemeDialog = false },
+                        onSelect = {
+                            viewModel.setDarkMode(it)
+                            showThemeDialog = false
+                        }
+                    )
+                }
 
                 if (notificationsEnabled) {
                     HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
@@ -281,7 +310,7 @@ fun SettingsScreen(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    "FinSignal v1.0.1",
+                    "FinSignal v1.0.2",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

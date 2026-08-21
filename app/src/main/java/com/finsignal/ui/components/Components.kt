@@ -20,10 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Create
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -61,13 +59,10 @@ fun BillCard(
     modifier: Modifier = Modifier,
     bill: BillWithCard,
     onMarkPaid: () -> Unit,
-    onUpdatePayment: (Double) -> Unit = {},
-    onMarkUnpaid: () -> Unit = {},
-    onEditBill: (totalDue: Double, minDue: Double, dueDate: String) -> Unit = { _, _, _ -> }
+    onUpdatePayment: (Double) -> Unit = {}
 ) {
     var isVisible by remember { mutableStateOf(true) }
     var showPaymentDialog by remember { mutableStateOf(false) }
-    var showEditDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(isVisible) {
         if (!isVisible) {
@@ -261,18 +256,6 @@ fun BillCard(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(
-                            onClick = { showEditDialog = true },
-                            modifier = Modifier.size(24.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Create,
-                                contentDescription = "Edit bill",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                                modifier = Modifier.size(14.dp)
-                            )
-                        }
-
                         if (!bill.isPaid) {
                             Spacer(modifier = Modifier.width(6.dp))
                             val checkedState = bill.isPaid
@@ -320,101 +303,6 @@ fun BillCard(
             }
         )
     }
-
-    if (showEditDialog) {
-        EditBillDialog(
-            totalDue = bill.totalDue,
-            minDue = bill.minDue,
-            dueDate = bill.dueDate,
-            currency = bill.currency,
-            isPaid = bill.isPaid,
-            onDismiss = { showEditDialog = false },
-            onConfirm = { total, min, due ->
-                onEditBill(total, min, due)
-                showEditDialog = false
-            },
-            onMarkUnpaid = {
-                showEditDialog = false
-                isVisible = true
-                onMarkUnpaid()
-            }
-        )
-    }
-}
-
-@Composable
-fun EditBillDialog(
-    totalDue: Double,
-    minDue: Double,
-    dueDate: String,
-    currency: String,
-    isPaid: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: (totalDue: Double, minDue: Double, dueDate: String) -> Unit,
-    onMarkUnpaid: () -> Unit = {}
-) {
-    var totalText by remember { mutableStateOf(totalDue.toString()) }
-    var minText by remember { mutableStateOf(minDue.toString()) }
-    var dueText by remember { mutableStateOf(dueDate) }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Edit Bill") },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = totalText,
-                    onValueChange = { totalText = it },
-                    label = { Text("Total Due ($currency)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = minText,
-                    onValueChange = { minText = it },
-                    label = { Text("Minimum Due ($currency)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = dueText,
-                    onValueChange = { dueText = it },
-                    label = { Text("Due Date (dd/mm/yyyy)") },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                if (isPaid) {
-                    TextButton(
-                        onClick = onMarkUnpaid,
-                        contentPadding = PaddingValues(0.dp)
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(16.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Mark Unpaid", color = MaterialTheme.colorScheme.error)
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val total = totalText.replace(",", "").toDoubleOrNull() ?: return@TextButton
-                    val min = minText.replace(",", "").toDoubleOrNull() ?: return@TextButton
-                    if (dueText.isBlank()) return@TextButton
-                    onConfirm(total, min, dueText.trim())
-                }
-            ) {
-                Text("Save")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    )
 }
 
 @Composable

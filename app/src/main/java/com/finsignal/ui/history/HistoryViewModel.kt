@@ -73,19 +73,6 @@ class HistoryViewModel @Inject constructor(
         }
     }
 
-    fun markBillAsUnpaid(billId: Long) {
-        viewModelScope.launch {
-            billRepository.markAsUnpaid(billId)
-        }
-    }
-
-    fun editBill(billId: Long, totalDue: Double, minDue: Double, dueDate: String) {
-        viewModelScope.launch {
-            val normalizedDue = com.finsignal.data.sms.BankSmsParser.normalizeDate(dueDate)
-            billRepository.updateBillDetails(billId, totalDue, minDue, normalizedDue)
-        }
-    }
-
     fun updatePartialPayment(billId: Long, amount: Double) {
         viewModelScope.launch {
             billRepository.updatePaidAmount(billId, amount)

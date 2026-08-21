@@ -95,11 +95,7 @@ fun HistoryScreen(
                         BillCard(
                             bill = bill,
                             onMarkPaid = { viewModel.markBillAsPaid(bill.billId) },
-                            onUpdatePayment = { viewModel.updatePartialPayment(bill.billId, it) },
-                            onMarkUnpaid = { viewModel.markBillAsUnpaid(bill.billId) },
-                            onEditBill = { total, min, due ->
-                                viewModel.editBill(bill.billId, total, min, due)
-                            }
+                            onUpdatePayment = { viewModel.updatePartialPayment(bill.billId, it) }
                         )
                     }
                 }
