@@ -3,10 +3,21 @@ package com.finsignal.ui.settings
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -15,13 +26,37 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sms
-import androidx.compose.material.icons.filled.EventNote
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.rememberTimePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -213,6 +248,33 @@ fun SettingsScreen(
                 )
             }
 
+            // Group: App Info & Updates
+            SettingsGroup(title = "App Info & Updates") {
+                SettingsItem(
+                    icon = Icons.Default.Language,
+                    title = "GitHub Repository",
+                    description = "View source code and contribute",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nazimunaeem/FinSignal"))
+                        context.startActivity(intent)
+                    },
+                    trailing = { Icon(Icons.Default.ChevronRight, contentDescription = null) }
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+
+                SettingsItem(
+                    icon = Icons.Default.Info,
+                    title = "Check for Updates",
+                    description = "Download the latest release",
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/nazimunaeem/FinSignal/releases"))
+                        context.startActivity(intent)
+                    },
+                    trailing = { Icon(Icons.Default.ChevronRight, contentDescription = null) }
+                )
+            }
+
             // App Info
             Column(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
@@ -224,7 +286,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    "Nazim's Idea developed with AI",
+                    "Nazim's Concept • AI Executed",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
@@ -267,6 +329,48 @@ fun NotificationTimePickerDialog(
             }
         }
     )
+}
+
+@Composable
+fun ThemeSelectionDialog(
+    currentMode: String,
+    onDismiss: () -> Unit,
+    onSelect: (String) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Choose Theme") },
+        text = {
+            Column {
+                ThemeOption("SYSTEM", "Follow System", currentMode == "SYSTEM", onSelect)
+                ThemeOption("LIGHT", "Light", currentMode == "LIGHT", onSelect)
+                ThemeOption("DARK", "Dark", currentMode == "DARK", onSelect)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+
+@Composable
+fun ThemeOption(
+    mode: String,
+    label: String,
+    selected: Boolean,
+    onSelect: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onSelect(mode) }
+            .padding(vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RadioButton(selected = selected, onClick = { onSelect(mode) })
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = label, style = MaterialTheme.typography.bodyLarge)
+    }
 }
 
 @Composable

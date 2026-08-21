@@ -41,7 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
                 INSTANCE ?: Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "cardbill.db"
+                    "finsignal.db"
                 )
                 .addMigrations(MIGRATION_5_6)
                 .fallbackToDestructiveMigration()

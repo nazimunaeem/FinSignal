@@ -8,10 +8,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -20,19 +20,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.lifecycle.lifecycleScope
-import kotlinx.coroutines.launch
+import com.finsignal.data.local.PreferenceManager
 import com.finsignal.notification.DueDateReminderScheduler
 import com.finsignal.notification.SmsScheduler
-import com.finsignal.data.local.PreferenceManager
 import com.finsignal.ui.cards.CardsScreen
 import com.finsignal.ui.dashboard.DashboardScreen
 import com.finsignal.ui.debug.DebugScreen
@@ -42,6 +40,7 @@ import com.finsignal.ui.navigation.bottomNavScreens
 import com.finsignal.ui.settings.SettingsScreen
 import com.finsignal.ui.theme.FinSignalTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -68,7 +67,14 @@ class MainActivity : ComponentActivity() {
         requestPermissions()
 
         setContent {
-            FinSignalTheme {
+            val darkModePreference by preferenceManager.darkMode.collectAsStateWithLifecycle(initialValue = "SYSTEM")
+            val useDarkTheme = when (darkModePreference) {
+                "LIGHT" -> false
+                "DARK" -> true
+                else -> isSystemInDarkTheme()
+            }
+
+            FinSignalTheme(darkTheme = useDarkTheme) {
                 MainApp()
             }
         }

@@ -1,7 +1,6 @@
 package com.finsignal.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -35,12 +34,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.finsignal.data.local.entity.BillWithCard
 import com.finsignal.data.local.entity.DueStatus
 import com.finsignal.ui.theme.StatusDueSoon
@@ -97,11 +99,11 @@ fun BillCard(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(16.dp),
+            shape = RoundedCornerShape(12.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -110,31 +112,31 @@ fun BillCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(28.dp)
                                 .clip(CircleShape)
-                                .background(statusColor.copy(alpha = 0.15f)),
+                                .background(statusColor.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.CreditCard,
                                 contentDescription = null,
                                 tint = statusColor,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(16.dp)
                             )
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
                                 text = bill.displayName,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Bold,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
                             Text(
-                                text = "Bill: ${bill.billPeriod}",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                text = "Period: ${bill.billPeriod}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                             )
                         }
                     }
@@ -142,7 +144,7 @@ fun BillCard(
                     StatusChip(status = bill.dueStatus, statusColor = statusColor, bgColor = bgColor)
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -151,13 +153,13 @@ fun BillCard(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (bill.paidAmount > 0) "Remaining Total" else "Total Due",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = if (bill.paidAmount > 0) "Remaining" else "Total Due",
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = if (bill.paidAmount > 0) bill.formattedRemaining else bill.formattedTotal,
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = statusColor
                         )
@@ -165,8 +167,8 @@ fun BillCard(
 
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "Minimum Due",
-                            style = MaterialTheme.typography.bodySmall,
+                            text = "Min Due",
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         val remainingMin = maxOf(0.0, bill.minDue - bill.paidAmount)
@@ -180,30 +182,31 @@ fun BillCard(
 
                         Text(
                             text = formattedMin,
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = if (remainingMin > 0) statusColor else StatusSafe
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.Bottom
                 ) {
                     Column {
                         Text(
                             text = "Due Date",
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = bill.formattedDueDate,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Medium
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = StatusOverdue
                         )
                     }
 
@@ -211,7 +214,7 @@ fun BillCard(
                         Column(horizontalAlignment = Alignment.End) {
                             Text(
                                 text = "Paid",
-                                style = MaterialTheme.typography.bodySmall,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             val symbol = when (bill.currency.uppercase()) {
@@ -220,21 +223,23 @@ fun BillCard(
                             }
                             Text(
                                 text = "$symbol${String.format(java.util.Locale.US, "%,.2f", bill.paidAmount)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
                                 color = StatusSafe
                             )
                         }
                     } else if (!bill.isPaid && bill.daysUntilDue >= 0) {
                         Text(
                             text = "${bill.daysUntilDue} day(s) left",
-                            style = MaterialTheme.typography.bodySmall,
+                            style = MaterialTheme.typography.labelSmall,
                             color = statusColor
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(4.dp))
+
+                HorizontalDivider(modifier = Modifier.alpha(0.2f))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -244,11 +249,12 @@ fun BillCard(
                     if (!bill.isPaid) {
                         TextButton(
                             onClick = { showPaymentDialog = true },
-                            contentPadding = PaddingValues(0.dp)
+                            contentPadding = PaddingValues(0.dp),
+                            modifier = Modifier.height(28.dp)
                         ) {
-                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(12.dp))
                             Spacer(modifier = Modifier.width(4.dp))
-                            Text("Partial Pay", style = MaterialTheme.typography.labelMedium)
+                            Text("Partial", style = MaterialTheme.typography.labelSmall)
                         }
                     } else {
                         Spacer(modifier = Modifier.width(4.dp))
@@ -257,27 +263,29 @@ fun BillCard(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(
                             onClick = { showEditDialog = true },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(24.dp)
                         ) {
                             Icon(
                                 Icons.Default.Create,
                                 contentDescription = "Edit bill",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                                modifier = Modifier.size(14.dp)
                             )
                         }
 
                         if (!bill.isPaid) {
+                            Spacer(modifier = Modifier.width(6.dp))
                             val checkedState = bill.isPaid
                             Switch(
                                 checked = checkedState,
                                 onCheckedChange = { isVisible = false },
+                                modifier = Modifier.scale(0.6f),
                                 thumbContent = {
                                     if (checkedState) {
                                         Icon(
                                             Icons.Default.CheckCircle,
                                             contentDescription = "Paid",
-                                            modifier = Modifier.size(16.dp)
+                                            modifier = Modifier.size(10.dp)
                                         )
                                     }
                                 },
@@ -286,10 +294,10 @@ fun BillCard(
                                     checkedTrackColor = StatusSafe.copy(alpha = 0.3f)
                                 )
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
                             Text(
-                                text = "Full Paid",
-                                style = MaterialTheme.typography.labelMedium,
+                                text = "Paid",
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
@@ -475,7 +483,7 @@ fun StatusChip(
     val text = when (status) {
         DueStatus.PAID -> "Paid"
         DueStatus.OVERDUE -> "Overdue"
-        DueStatus.DUE_SOON -> "Due Soon"
+        DueStatus.DUE_SOON -> "Soon"
         DueStatus.UPCOMING -> "Upcoming"
         DueStatus.SAFE -> "Safe"
     }
@@ -484,13 +492,13 @@ fun StatusChip(
         modifier = Modifier
             .clip(RoundedCornerShape(20.dp))
             .background(bgColor)
-            .padding(horizontal = 12.dp, vertical = 6.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Text(
             text = text,
             style = MaterialTheme.typography.labelSmall,
             color = statusColor,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -506,12 +514,12 @@ fun SummaryCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -521,13 +529,13 @@ fun SummaryCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Total Due (This Month)",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = thisMonthTotal,
-                        style = if (thisMonthTotal.length > 15) MaterialTheme.typography.headlineSmall else MaterialTheme.typography.headlineLarge,
+                        style = if (thisMonthTotal.length > 15) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
@@ -541,39 +549,39 @@ fun SummaryCard(
                     )
                     Text(
                         text = thisMonthMinTotal,
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             
             Text(
                 text = "Previous Months Balance",
-                style = MaterialTheme.typography.bodySmall,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
             )
             Text(
                 text = prevMonthTotal,
-                style = if (prevMonthTotal.length > 15) MaterialTheme.typography.titleMedium else MaterialTheme.typography.titleLarge,
+                style = if (prevMonthTotal.length > 15) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             Row {
                 Text(
                     text = "$unpaidCount card(s) unpaid",
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
                 )
                 if (overdueCount > 0) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = "$overdueCount overdue",
-                        style = MaterialTheme.typography.bodySmall,
+                        style = MaterialTheme.typography.labelSmall,
                         color = Color(0xFFFF8A80),
                         fontWeight = FontWeight.SemiBold
                     )
@@ -593,26 +601,27 @@ fun SectionHeader(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(8.dp)
+                .size(6.dp)
                 .clip(CircleShape)
                 .background(color)
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = color
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            color = color,
+            letterSpacing = 0.5.sp
         )
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(6.dp))
         Text(
             text = "($count)",
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
@@ -625,43 +634,45 @@ fun SmsPermissionCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             horizontalAlignment = Alignment.Start
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Warning,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(18.dp)
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = "SMS Permission Required",
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             Text(
-                text = "Grant SMS permission so FinSignal can automatically scan bank messages and detect your credit card bills.",
-                style = MaterialTheme.typography.bodyMedium,
+                text = "FinSignal needs SMS access to detect bills automatically.",
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onErrorContainer
             )
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(10.dp))
             androidx.compose.material3.Button(
                 onClick = onRequestPermission,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(vertical = 4.dp)
             ) {
-                Text("Grant SMS Permission")
+                Text("Grant Permission", style = MaterialTheme.typography.labelLarge)
             }
         }
     }

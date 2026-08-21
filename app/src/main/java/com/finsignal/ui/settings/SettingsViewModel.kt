@@ -48,12 +48,21 @@ class SettingsViewModel @Inject constructor(
     val alertTime: StateFlow<String> = preferenceManager.alertTime
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "09:00")
 
+    val darkMode: StateFlow<String> = preferenceManager.darkMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), "SYSTEM")
+
     fun triggerRescan() {
         viewModelScope.launch {
             com.finsignal.data.log.ActivityLogger(getApplication()).info("SettingsViewModel", "Manual full rescan triggered")
             // Force a full inbox scan so bills missed by earlier scans are re-detected
             preferenceManager.setFirstScanComplete(false)
             SmsScheduler.scanNow(getApplication(), force = true)
+        }
+    }
+
+    fun setDarkMode(mode: String) {
+        viewModelScope.launch {
+            preferenceManager.setDarkMode(mode)
         }
     }
 
@@ -90,7 +99,7 @@ class SettingsViewModel @Inject constructor(
             try {
                 val context = getApplication<Application>()
                 val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-                val file = File(context.filesDir, "cardbill_export_$timestamp.csv")
+                val file = File(context.filesDir, "finsignal_export_$timestamp.csv")
 
                 val bills = billRepository.getAllBills().first()
                 file.bufferedWriter().use { writer ->

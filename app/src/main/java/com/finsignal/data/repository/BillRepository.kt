@@ -17,13 +17,9 @@ class BillRepository @Inject constructor(
 
     fun getBillsForCard(cardId: Long): Flow<List<BillWithCard>> = billDao.getBillsForCard(cardId)
 
-    fun getTotalUnpaid(): Flow<Double?> = billDao.getTotalUnpaid()
-
     fun getUnpaidCount(): Flow<Int> = billDao.getUnpaidCount()
 
-    fun getOverdueCount(today: String): Flow<Int> = billDao.getOverdueCount(today)
-
-    fun getUnpaidTotalForCard(cardId: Long): Flow<Double?> = billDao.getUnpaidTotalForCard(cardId)
+    fun getPaidTotalForCard(cardId: Long): Flow<Double?> = billDao.getPaidTotalForCard(cardId)
 
     suspend fun addBill(bill: Bill): Long = billDao.insertBill(bill)
 
@@ -40,4 +36,18 @@ class BillRepository @Inject constructor(
         billDao.findExistingBill(cardId, period)
 
     suspend fun findBillBySms(smsBody: String): Bill? = billDao.findBillBySms(smsBody)
+
+    suspend fun getBillsForCardOnce(cardId: Long): List<Bill> = billDao.getBillsForCardOnce(cardId)
+
+    suspend fun getAllBillsOnce(): List<Bill> = billDao.getAllBillsOnce()
+
+    suspend fun deleteBillsByIds(ids: List<Long>) = billDao.deleteBillsByIds(ids)
+
+    suspend fun markOlderBillsSuperseded(cardId: Long, currency: String, newBillDueDate: String) =
+        billDao.markOlderBillsSuperseded(cardId, currency, newBillDueDate)
+
+    suspend fun markAllButLatestSuperseded() = billDao.markAllButLatestSuperseded()
+
+    suspend fun clearSmsBodyForOldPaidBills(beforeTimestamp: Long) =
+        billDao.clearSmsBodyForOldPaidBills(beforeTimestamp)
 }

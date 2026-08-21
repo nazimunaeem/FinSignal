@@ -73,6 +73,12 @@ interface BillDao {
     """)
     fun getUnpaidTotalForCard(cardId: Long): Flow<Double?>
 
+    @Query("""
+        SELECT SUM(paidAmount) FROM bills
+        WHERE cardId = :cardId
+    """)
+    fun getPaidTotalForCard(cardId: Long): Flow<Double?>
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertBill(bill: Bill): Long
 

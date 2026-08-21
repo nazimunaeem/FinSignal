@@ -14,21 +14,21 @@
                 android:gradientRadius="70"
                 android:type="radial">
                 <item
-                    android:color="#4CAF50"
+                    android:color="#43A047"
                     android:offset="0" />
                 <item
-                    android:color="#2E7D32"
+                    android:color="#1B5E20"
                     android:offset="1" />
             </gradient>
         </aapt:attr>
     </path>
-    <!-- Modern geometric pattern -->
-    <path
-        android:fillColor="#1B5E20"
-        android:fillAlpha="0.1"
-        android:pathData="M0,80 L108,40 L108,108 L0,108 Z" />
+    <!-- Modern signal-inspired background pattern -->
     <path
         android:fillColor="#FFFFFF"
         android:fillAlpha="0.05"
-        android:pathData="M0,0 L108,60 L108,0 Z" />
+        android:pathData="M0,80 Q54,40 108,80 L108,108 L0,108 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.03"
+        android:pathData="M0,60 Q54,20 108,60 L108,0 L0,0 Z" />
 </vector>

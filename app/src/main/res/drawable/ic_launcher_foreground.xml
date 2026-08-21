@@ -5,30 +5,42 @@
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Subtle Shadow/Depth for the card -->
-    <path
-        android:fillColor="#1B5E20"
-        android:fillAlpha="0.2"
-        android:pathData="M24,42C24,39.791 25.791,38 28,38h56c2.209,0 4,1.791 4,4v28c0,2.209 -1.791,4 -4,4h-56c-2.209,0 -4,-1.791 -4,-4V42z" />
-
-    <!-- Main Card Body -->
+    <!-- Background Accent Circle -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M24,40C24,37.791 25.791,36 28,36h56c2.209,0 4,1.791 4,4v28c0,2.209 -1.791,4 -4,4h-56c-2.209,0 -4,-1.791 -4,-4V40z" />
+        android:fillAlpha="0.15"
+        android:pathData="M54,54m-42,0a42,42 0,1 1,84 0a42,42 0,1 1,-84 0" />
 
-    <!-- Magnetic Stripe -->
-    <path
-        android:fillColor="#A5D6A7"
-        android:pathData="M24,44h64v6h-64z" />
+    <!-- FinSignal "Pulse & Growth" Icon -->
+    <!-- Represents a signal wave that transitions into a rising financial chart -->
 
-    <!-- Card Details Lines (Minimalist) -->
+    <!-- The Signal Waves -->
     <path
-        android:fillColor="#C8E6C9"
-        android:pathData="M32,58h20v2h-20zM32,64h12v2h-12z" />
+        android:fillColor="#FFFFFF"
+        android:pathData="M30,54 A24,24 0 0,1 78,54"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:fillAlpha="0" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,54 A14,14 0 0,1 68,54"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="2"
+        android:strokeLineCap="round"
+        android:fillAlpha="0" />
 
-    <!-- Floating Currency Symbol (৳) or Checkmark -->
+    <!-- The Pulse / Growth Line -->
     <path
-        android:fillColor="#1B5E20"
-        android:pathData="M72,56l-3,3l-1,1l1,1l5,5l1,1l1,-1l10,-10l1,-1l-1,-1l-1,-1l-9,9z" />
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M24,65 L38,65 L44,45 L50,85 L56,55 L65,55 L72,30 L84,30" />
+
+    <!-- Arrowhead for Growth -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M80,24 L88,30 L80,36 Z" />
 
 </vector>

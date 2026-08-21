@@ -1,7 +1,6 @@
 package com.finsignal.ui.history
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.finsignal.data.local.entity.BillWithCard
 import com.finsignal.data.repository.BillRepository
@@ -10,47 +9,62 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
-    application: Application,
     private val billRepository: BillRepository
-) : AndroidViewModel(application) {
+) : ViewModel() {
 
-    private val _selectedMonth = MutableStateFlow(getCurrentMonth())
-    val selectedMonth: StateFlow<String> = _selectedMonth.asStateFlow()
+    private val _selectedYear = MutableStateFlow(getCurrentYear())
+    val selectedYear: StateFlow<String> = _selectedYear.asStateFlow()
 
-    val allBills: StateFlow<List<BillWithCard>> = billRepository.getAllBills()
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val allBills = billRepository.getAllBills()
 
-    private fun getCurrentMonth(): String {
-        return SimpleDateFormat("MMM yyyy", Locale.US).format(Date())
+    /**
+     * Exposes unique years present in the bill history for filtering.
+     */
+    val availableYears: StateFlow<List<String>> = allBills
+        .map { bills ->
+            bills.mapNotNull { extractYear(it.dueDate) }
+                .distinct()
+                .sortedDescending()
+                .ifEmpty { listOf(getCurrentYear()) }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = listOf(getCurrentYear())
+        )
+
+    /**
+     * Exposes bills filtered by the selected year.
+     */
+    val filteredBills: StateFlow<List<BillWithCard>> = combine(allBills, _selectedYear) { bills, year ->
+        bills.filter { extractYear(it.dueDate) == year }
+            .sortedByDescending { it.detectedAt }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
+    private fun getCurrentYear(): String {
+        return Calendar.getInstance().get(Calendar.YEAR).toString()
     }
 
-    fun selectMonth(month: String) {
-        _selectedMonth.value = month
+    private fun extractYear(dateStr: String): String? {
+        // Date is stored as dd/MM/yyyy in DB
+        return dateStr.substringAfterLast('/', "").takeIf { it.isNotEmpty() }
     }
 
-    fun getAvailableMonths(bills: List<BillWithCard>): List<String> {
-        val months = bills.map { bill ->
-            try {
-                val input = SimpleDateFormat("dd/MM/yyyy", Locale.US)
-                val output = SimpleDateFormat("MMM yyyy", Locale.US)
-                val date = input.parse(bill.dueDate)
-                date?.let { output.format(it) } ?: ""
-            } catch (e: Exception) {
-                ""
-            }
-        }.filter { it.isNotBlank() }.distinct().sorted()
-
-        return months.ifEmpty { listOf(getCurrentMonth()) }
+    fun selectYear(year: String) {
+        _selectedYear.value = year
     }
 
     fun markBillAsPaid(billId: Long) {
@@ -75,19 +89,6 @@ class HistoryViewModel @Inject constructor(
     fun updatePartialPayment(billId: Long, amount: Double) {
         viewModelScope.launch {
             billRepository.updatePaidAmount(billId, amount)
-        }
-    }
-
-    fun getFilteredBills(bills: List<BillWithCard>, month: String): List<BillWithCard> {
-        return bills.filter { bill ->
-            try {
-                val input = SimpleDateFormat("dd/MM/yyyy", Locale.US)
-                val output = SimpleDateFormat("MMM yyyy", Locale.US)
-                val date = input.parse(bill.dueDate)
-                date?.let { output.format(it) == month } ?: false
-            } catch (e: Exception) {
-                false
-            }
         }
     }
 }

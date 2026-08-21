@@ -1,139 +1,121 @@
-# FinSignal
+# 📊 FinSignal
 
-FinSignal is an Android app for tracking card bills, reminders, and payment activity from SMS data.
+**FinSignal** is a privacy-focused, local-first Android application designed to automate the tracking of credit card bills and financial statements by intelligently parsing bank SMS messages.
 
-## Features
-- Parse bank and utility SMS messages
-- Track bills and due dates
-- Manage credit cards and activity history
-- Show reminders and notification-based follow-ups
-- Store records locally on the device
+Designed with a high-density, modern UI, FinSignal helps you stay on top of your credit card payments without ever letting your sensitive financial data leave your device.
 
-## Tech Stack
-- Kotlin
-- Jetpack Compose
-- Room database
-- Hilt dependency injection
-- WorkManager
-- Android Gradle plugin
+---
 
-## Project Structure
-- `app/` – Android application code
-- `Analysis/` – local analysis and sample SMS data
-- `gradle/` – Gradle wrapper and configuration
+## ✨ Key Features
 
-## Local Setup
-1. Open the project in Android Studio.
-2. Make sure the Android SDK is installed.
-3. Run:
+- 📱 **Smart SMS Parsing**: Automatically detects and extracts bill details (Total Due, Minimum Due, Due Date) from supported bank messages.
+- 📅 **Year-wise History**: Organizes your financial history by year with a high-density view of all past statements.
+- 💳 **Card Management**: Track multiple cards with detailed statistics, including "Total Paid" summaries for each card.
+- 🔔 **Intelligent Reminders**: Customizable notification rules (Daily, 3 days before, Hourly on due date) to ensure you never miss a payment.
+- 🌓 **Dark Mode**: Full support for System, Light, and Dark themes.
+- 🔒 **Privacy First**: No cloud sync, no accounts. All data is stored locally in an encrypted Room database and Jetpack DataStore.
+- 📤 **Data Export**: Export your entire bill history to CSV for personal accounting or backup.
 
-```bash
-./gradlew assembleDebug
-```
+---
 
-## Contributing: Adding a New Bank Parser
+## 🏦 Supported Banks
 
-Only a few banks are supported so far. Adding support for another bank is welcome and only touches a few files.
+FinSignal currently provides automated parsing for major banks, including:
+- ✅ **Prime Bank**
+- ✅ **Pubali Bank**
+- ✅ **City Bank (Amex)**
+- ✅ **BRAC Bank**
+- ✅ **Eastern Bank (EBL)**
 
-All parsing lives in one file:
+> [!TIP]
+> **Want your bank supported?** Open an issue or comment with your bank's bill SMS format. Please **exclude/anonymize** sensitive data like exact balances or customer IDs by replacing them with `*`.
 
-```
-app/src/main/java/com/finsignal/data/sms/BankSmsParser.kt
-```
+---
 
-Each bank is identified by its SMS sender ID (e.g. `PRIMEBANK`) or by keywords inside the message body, then parsed into a `ParsedBill`:
+## 📲 How to Install (APK)
 
-```kotlin
-data class ParsedBill(
-    val bankName: String,
-    val cardLast4: String,
-    val billPeriod: String,
-    val totalDue: Double,
-    val minDue: Double,
-    val dueDate: String,
-    val clientId: String? = null,
-    val currency: String = "BDT"
-)
-```
+If you are installing the pre-built APK, please follow these steps to ensure the app works correctly with Android's security features:
 
-### Steps to add a bank
+1. **Disable Play Protect**: Open the **Play Store**, tap your profile icon, select **Play Protect** -> **Settings**, and temporarily toggle off "Scan apps with Play Protect".
+2. **Install the APK**: Open your downloaded `.apk` file and tap **Install**.
+3. **Allow Restricted Settings**:
+   - Go to your phone's **Settings** -> **Apps** -> **See all apps**.
+   - Find and tap on **FinSignal**.
+   - Tap the **three dots (⋮)** in the top right corner.
+   - Select **"Allow restricted settings"** (This is required for SMS access on newer Android versions).
+4. **Grant Permissions**:
+   - Inside the app's Info page, go to **Permissions**.
+   - Manually allow **SMS** and **Notifications**.
+5. **Enjoy!**: Launch the app and start tracking your bills.
 
-1. **Collect real sample SMS** from the target bank (a card bill/statement SMS). Never commit real personal data — anonymize card numbers, names, and amounts in tests.
-2. **Add a `BankType` enum value** in `BankSmsParser.kt`:
-   ```kotlin
-   enum class BankType { PRIME_BANK, PUBALI_BANK, CITY_BANK, BRAC_BANK, EBL, MY_NEW_BANK, UNKNOWN }
+---
+
+## 🛠 Tech Stack
+
+- **Language**: 100% Kotlin
+- **UI Framework**: Jetpack Compose (Material 3)
+- **Architecture**: MVVM with Clean Architecture principles
+- **Dependency Injection**: Hilt
+- **Local Database**: Room (with migrations support)
+- **Background Tasks**: WorkManager (for periodic SMS scanning)
+- **Data Persistence**: Jetpack DataStore (Preferences)
+- **Build System**: Kotlin DSL (`.gradle.kts`)
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Android Studio Ladybug (or newer)
+- Android SDK 34+
+- A device/emulator with SMS capability (for testing parsing)
+
+### Installation
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/nazimunaeem/FinSignal.git
    ```
-3. **Add a private regex** for the SMS format near the other bank patterns:
-   ```kotlin
-   private val myNewBankPattern = Regex(
-       """...your pattern here...""",
-       RegexOption.IGNORE_CASE
-   )
-   ```
-4. **Register sender IDs** in the `senderPatterns` map:
-   ```kotlin
-   "MYNEWBANK" to BankType.MY_NEW_BANK,
-   ```
-5. **(Optional)** If the bank sends from a normal phone number instead of a sender ID, add statement-link keywords to `linkBankKeywords` or body-keyword heuristics in `identifyBank()` so the bank can still be detected.
-6. **Add a dispatch branch** in the `when` block of `parse()`:
-   ```kotlin
-   BankType.MY_NEW_BANK -> parseMyNewBank(smsBody)
-   ```
-7. **Write the parse function**, following the existing pattern:
-   ```kotlin
-   private fun parseMyNewBank(smsBody: String): ParsedBill? {
-       val match = myNewBankPattern.find(smsBody) ?: return null
-       return ParsedBill(
-           bankName = "My New Bank",
-           cardLast4 = match.groupValues[1],
-           billPeriod = normalizeBillPeriod(match.groupValues[2]),
-           currency = normalizeCurrency(match.groupValues[3]),
-           totalDue = parseAmount(match.groupValues[4]),
-           minDue = parseAmount(match.groupValues[5]),
-           dueDate = normalizeDate(match.groupValues[6])
-       )
-   }
-   ```
-8. **Add the bank name to `FILTER_KEYWORDS`** in `app/src/main/java/com/finsignal/data/sms/SmsReader.kt` — otherwise the inbox scanner may skip that bank's SMS before it ever reaches the parser.
-9. **Add unit tests** in `app/src/test/java/com/finsignal/data/sms/BankSmsParserTest.kt` using your anonymized sample SMS:
-   ```kotlin
-   @Test
-   fun parseMyNewBankSms() {
-       val sms = "...sample sms body..."
-       val parsed = BankSmsParser.parse(sms, "MYNEWBANK")
-       assertNotNull(parsed)
-       assertEquals("My New Bank", parsed?.bankName)
-       assertEquals("1234", parsed?.cardLast4)
-       // ...assert totalDue, minDue, dueDate, billPeriod
-   }
+2. Open the project in Android Studio.
+3. Build and run the app:
+   ```bash
+   ./gradlew assembleDebug
    ```
 
-### Conventions to follow
+---
 
-- Use `[\s\u00A0]*` between tokens in regexes so whitespace, line breaks, and non-breaking spaces are tolerated; always use `RegexOption.IGNORE_CASE`.
-- Always pass captured values through the shared helpers instead of parsing manually:
-  - `parseAmount(...)` – strips commas/currency symbols → `Double`
-  - `normalizeCurrency(...)` – maps `Tk`, `৳`, `$`, etc. → canonical currency code
-  - `normalizeDate(...)` – converts any date format → `dd/MM/yyyy`
-  - `normalizeBillPeriod(...)` – converts any period format → e.g. `August 2026`
+## 🤝 Contributing: Adding a New Bank Parser
 
-  These canonical forms are required because bills are deduplicated on `(card, billPeriod, currency)`.
-- Return `null` when the body doesn't match — never throw.
-- If a bank has multiple SMS formats, try each pattern in order and fall back to another shared pattern if needed (see `parsePubaliBank`).
-- Run the tests before opening a PR:
+We welcome contributions for new bank parsers! All parsing logic is centralized in:
+`app/src/main/java/com/finsignal/data/sms/BankSmsParser.kt`
 
-```bash
-./gradlew testDebugUnitTest
-```
+### Quick Steps to Add a Bank:
+1. **Identify the Pattern**: Collect an anonymized sample SMS from the bank.
+2. **Add Regex**: Define a new `Regex` pattern for the SMS body in `BankSmsParser.kt`.
+3. **Register Sender**: Add the bank's sender ID (e.g., `CITYBANK`) to the `senderPatterns` map.
+4. **Implement Parser**: Write a `parse[BankName]` function using the provided normalization helpers:
+   - `parseAmount()`: Handles commas and currency symbols.
+   - `normalizeDate()`: Standardizes dates to `dd/MM/yyyy`.
+   - `normalizeBillPeriod()`: Canonicalizes periods to `Month Year`.
+5. **Verify with Tests**: Add a test case in `BankSmsParserTest.kt` and run:
+   ```bash
+   ./gradlew testDebugUnitTest
+   ```
 
-## Security and GitHub Notes
-This project should not be published with:
-- local machine paths from `local.properties`
-- SMS exports containing OTPs, account numbers, or passwords
-- API keys, tokens, or secret credentials
-- generated build directories
+---
 
-The repository currently ignores the folders that contain local analysis and build output, including `Analysis/`, `app/build/`, and `.gradle/`.
+## 🛡 Security & Privacy
 
-## Important
-Do not commit or push personal SMS data, bank details, OTPs, credentials, or anything that could identify a real user.
+FinSignal is built with security as a core principle:
+- **Zero Cloud**: Your SMS data is never uploaded to any server.
+- **Permission Scoping**: Only requires `READ_SMS` and `RECEIVE_SMS` to function.
+- **No Personal Data in Repo**: We strictly forbid committing real SMS data or `local.properties`.
+
+---
+
+## 📜 License
+Developed by **Nazim** • Executed with AI.
+This project is for personal financial management and educational purposes.
+
+---
+> [!IMPORTANT]
+> Never commit or push personal SMS data, bank details, OTPs, or real credentials to this repository.

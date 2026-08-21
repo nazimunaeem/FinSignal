@@ -19,6 +19,7 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     private val ALERT_RULES = stringSetPreferencesKey("alert_rules")
     private val ALERT_TIME = stringPreferencesKey("alert_time")
     private val FIRST_SCAN_COMPLETE = booleanPreferencesKey("first_scan_complete")
+    private val DARK_MODE = stringPreferencesKey("dark_mode")
 
     val notificationsEnabled: Flow<Boolean> = context.dataStore.data.map { it[NOTIFICATIONS_ENABLED] ?: true }
     val alertRules: Flow<Set<String>> = context.dataStore.data.map {
@@ -26,9 +27,14 @@ class PreferenceManager @Inject constructor(@ApplicationContext private val cont
     }
     val alertTime: Flow<String> = context.dataStore.data.map { it[ALERT_TIME] ?: "09:00" }
     val isFirstScanComplete: Flow<Boolean> = context.dataStore.data.map { it[FIRST_SCAN_COMPLETE] ?: false }
+    val darkMode: Flow<String> = context.dataStore.data.map { it[DARK_MODE] ?: "SYSTEM" }
 
     suspend fun setNotificationsEnabled(enabled: Boolean) {
         context.dataStore.edit { it[NOTIFICATIONS_ENABLED] = enabled }
+    }
+
+    suspend fun setDarkMode(mode: String) {
+        context.dataStore.edit { it[DARK_MODE] = mode }
     }
 
     suspend fun setAlertRules(rules: Set<String>) {

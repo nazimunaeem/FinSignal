@@ -55,7 +55,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -130,7 +129,7 @@ fun DashboardScreen(
         ) {
             LazyColumn(
                 contentPadding = PaddingValues(bottom = 100.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 if (!hasSmsPermission) {
@@ -155,7 +154,7 @@ fun DashboardScreen(
                     )
                 }
 
-                if (state.unpaidCount == 0 && !state.isLoading) {
+                if (state.unpaidCount == 0) {
                     item {
                         Box(
                             modifier = Modifier
