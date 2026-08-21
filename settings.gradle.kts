@@ -17,5 +17,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "CardBill"
+rootProject.name = "FinSignal"
 include(":app")

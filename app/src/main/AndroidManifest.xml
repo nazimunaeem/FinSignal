@@ -10,17 +10,17 @@
     <uses-permission android:name="android.permission.USE_BIOMETRIC" />
 
     <application
-        android:name=".CardBillApp"
+        android:name=".FinSignalApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:supportsRtl="true"
-        android:theme="@style/Theme.CardBill">
+        android:theme="@style/Theme.FinSignal">
 
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.CardBill">
+            android:theme="@style/Theme.FinSignal">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />

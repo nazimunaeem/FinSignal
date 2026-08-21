@@ -6,11 +6,11 @@ plugins {
 }
 
 android {
-    namespace = "com.cardbill"
+    namespace = "com.finsignal"
     compileSdk = 37
 
     defaultConfig {
-        applicationId = "com.cardbill"
+        applicationId = "com.finsignal"
         minSdk = 26
         targetSdk = 37
         versionCode = 1
